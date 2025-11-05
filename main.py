@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_file
 import instaloader
 import os
+import tempfile
+import shutil
 
 app = Flask(__name__)
 
@@ -31,15 +33,22 @@ def download():
         if not post.is_video:
             return jsonify({'error': 'This post does not contain a video.'})
 
-        target_folder = "static"
-        loader.download_post(post, target=target_folder)
+        # Create a temporary directory for download
+        with tempfile.TemporaryDirectory() as temp_dir:
+            loader.download_post(post, target=temp_dir)
 
-        # Remove any .txt files in the target folder
-        for filename in os.listdir(target_folder):
-            if filename.endswith(".txt"):
-                os.remove(os.path.join(target_folder, filename))
+            # Find the video file (should be the only .mp4 file)
+            video_file = None
+            for filename in os.listdir(temp_dir):
+                if filename.endswith(".mp4"):
+                    video_file = os.path.join(temp_dir, filename)
+                    break
 
-        return jsonify({'success': 'Video downloaded successfully!'})
+            if video_file:
+                # Send the file to the user for download
+                return send_file(video_file, as_attachment=True, download_name=f"{shortcode}.mp4")
+            else:
+                return jsonify({'error': 'Video file not found after download.'})
 
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'})

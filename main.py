@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file, url_for
 import instaloader
 import os
 import tempfile
 import shutil
+import uuid
 
 app = Flask(__name__)
 
@@ -45,13 +46,37 @@ def download():
                     break
 
             if video_file:
-                # Send the file to the user for download
-                return send_file(video_file, as_attachment=True, download_name=f"{shortcode}.mp4")
+                # Generate a unique download ID
+                download_id = str(uuid.uuid4())
+                download_url = url_for('download_file', download_id=download_id, _external=True)
+
+                # Store the file path temporarily (in a real app, use a database or cache)
+                # For simplicity, we'll use a global dict (not recommended for production)
+                if not hasattr(app, 'temp_files'):
+                    app.temp_files = {}
+                app.temp_files[download_id] = video_file
+
+                return jsonify({'download_url': download_url, 'filename': f"{shortcode}.mp4"})
             else:
                 return jsonify({'error': 'Video file not found after download.'})
 
     except Exception as e:
         return jsonify({'error': f'An error occurred: {str(e)}'})
+
+@app.route('/download/<download_id>')
+def download_file(download_id):
+    if not hasattr(app, 'temp_files') or download_id not in app.temp_files:
+        return jsonify({'error': 'Download link expired or invalid.'}), 404
+
+    video_file = app.temp_files[download_id]
+    if os.path.exists(video_file):
+        response = send_file(video_file, as_attachment=True, download_name=os.path.basename(video_file))
+        # Clean up the temporary file after sending
+        os.remove(video_file)
+        del app.temp_files[download_id]
+        return response
+    else:
+        return jsonify({'error': 'File not found.'}), 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=int(os.environ.get('PORT', 5000)), debug=False)

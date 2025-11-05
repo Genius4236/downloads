@@ -90,21 +90,22 @@
                 });
 
                 if (response.ok) {
-                    // If response is successful, it's a file download
-                    const blob = await response.blob();
+                    // If response is successful, create a download link
+                    const result = await response.json();
+                    const downloadUrl = result.download_url;
+                    const filename = result.filename;
 
-                    // Create a download link for the blob
-                    const downloadUrl = window.URL.createObjectURL(blob);
+                    // Create an anchor tag for download
                     const a = document.createElement('a');
-                    a.style.display = 'none';
                     a.href = downloadUrl;
-                    a.download = 'instagram_video.mp4';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(downloadUrl);
-                    document.body.removeChild(a);
+                    a.download = filename;
+                    a.textContent = 'Click here to download your video';
+                    a.style.color = 'green';
+                    a.style.textDecoration = 'underline';
+                    a.style.cursor = 'pointer';
 
-                    outputDiv.innerHTML = '<p style="color: green;">Video downloaded successfully!</p>';
+                    outputDiv.innerHTML = '<p style="color: green;">Video ready for download!</p>';
+                    outputDiv.appendChild(a);
                 } else {
                     // If error, parse as JSON
                     const result = await response.json();

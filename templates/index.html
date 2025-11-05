@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instagram Video Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+        #output {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Instagram Video Downloader</h1>
+        <input type="text" id="Video_link" placeholder="Enter Instagram post URL...">
+        <button id="download_btn">Download Video</button>
+        <div id="output"></div>
+    </div>
+
+    <script>
+        document.getElementById('download_btn').addEventListener('click', async function() {
+            const url = document.getElementById('Video_link').value.trim();
+            const outputDiv = document.getElementById('output');
+            const button = document.getElementById('download_btn');
+
+            if (!url) {
+                outputDiv.innerHTML = '<p style="color: red;">Please enter a valid Instagram post URL.</p>';
+                return;
+            }
+
+            button.disabled = true;
+            button.textContent = 'Downloading...';
+            outputDiv.innerHTML = '<p style="color: blue;">Downloading video...</p>';
+
+            try {
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    outputDiv.innerHTML = `<p style="color: green;">${result.success}</p>`;
+                } else {
+                    outputDiv.innerHTML = `<p style="color: red;">${result.error}</p>`;
+                }
+            } catch (error) {
+                outputDiv.innerHTML = `<p style="color: red;">An error occurred: ${error.message}</p>`;
+            } finally {
+                button.disabled = false;
+                button.textContent = 'Download Video';
+            }
+        });
+    </script>
+</body>
+</html>

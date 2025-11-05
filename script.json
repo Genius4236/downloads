@@ -1,0 +1,6 @@
+{
+  "packages": ["requests", "beautifulsoup4"],
+  "files": {
+    "./main.py": "./main.py"
+  }
+}

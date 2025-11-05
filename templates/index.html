@@ -103,8 +103,9 @@
                     a.style.color = 'green';
                     a.style.textDecoration = 'underline';
                     a.style.cursor = 'pointer';
+                    a.target = '_blank';  // Open in new tab if needed
 
-                    outputDiv.innerHTML = '<p style="color: green;">Video ready for download!</p>';
+                    outputDiv.innerHTML = '<p style="color: green;">Video downloaded to static folder! </p>';
                     outputDiv.appendChild(a);
                 } else {
                     // If error, parse as JSON
